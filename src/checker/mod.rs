@@ -94,6 +94,7 @@ impl Checker for Checkers {
         unreachable!()
     }
 
+    #[tracing::instrument(skip_all)]
     fn check<'a, 's>(
         &self,
         origin: &ContentOrigin,

@@ -333,7 +333,7 @@ impl Action {
         let fin = match self {
             Self::ListFiles { .. } => self.run_list_files(documents, &config).await?,
             Self::Reflow { .. } => self.run_reflow(documents, config).await?,
-            Self::Check { .. } => self.run_check(documents, config).await?,
+            Self::Check { .. } => self.run_check(documents, config)?,
             Self::Fix { .. } => self.run_fix_interactive(documents, config).await?,
         };
         Ok(fin)
@@ -406,7 +406,8 @@ impl Action {
     }
 
     /// Run the requested action.
-    async fn run_check(self, documents: Documentation, config: Config) -> Result<Finish> {
+    #[tracing::instrument(skip_all)]
+    fn run_check(self, documents: Documentation, config: Config) -> Result<Finish> {
         let checkers = Checkers::new(config)?;
         let num_mistakes = documents
             .into_par_iter()
