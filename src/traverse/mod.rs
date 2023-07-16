@@ -420,6 +420,7 @@ fn handle_manifest<P: AsRef<Path>>(
 }
 
 /// Extract all chunks from
+#[tracing::instrument(skip_all)]
 pub(crate) fn extract(
     mut paths: Vec<PathBuf>,
     mut recurse: bool,

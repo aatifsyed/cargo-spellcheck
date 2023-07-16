@@ -79,11 +79,14 @@ pub fn run(args: Args) -> Result<ExitCode> {
         .num_threads(args.job_count())
         .build_global();
 
-    env_logger::Builder::from_env(env_logger::Env::new().filter_or("CARGO_SPELLCHECK", "warn"))
-        .filter_level(args.verbosity())
-        .filter_module("nlprule", log::LevelFilter::Error)
-        .filter_module("mio", log::LevelFilter::Error)
-        .init();
+    use tracing_chrome::TraceStyle;
+    use tracing_subscriber::{layer::SubscriberExt as _, util::SubscriberInitExt as _};
+
+    let (layer, _flush_guard) = tracing_chrome::ChromeLayerBuilder::new()
+        .trace_style(TraceStyle::Threaded)
+        .build();
+
+    tracing_subscriber::registry().with(layer).init();
 
     #[cfg(not(target_os = "windows"))]
     signal_handler(move || {
@@ -154,7 +157,7 @@ pub fn run(args: Args) -> Result<ExitCode> {
                 traverse::extract(paths, recursive, skip_readme, dev_comments, &config)?;
 
             let rt = tokio::runtime::Runtime::new()?;
-            let finish = rt.block_on(async move { action.run(documents, config).await })?;
+            let finish = rt.block_on(action.run(documents, config))?;
 
             match finish {
                 Finish::Success | Finish::MistakeCount(0) => Ok(ExitCode::Success),

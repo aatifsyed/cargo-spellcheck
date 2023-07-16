@@ -406,9 +406,9 @@ impl Action {
     }
 
     /// Run the requested action.
+    #[tracing::instrument(skip_all)]
     async fn run_check(self, documents: Documentation, config: Config) -> Result<Finish> {
         let n_cpus = num_cpus::get();
-
         let checkers = Checkers::new(config)?;
 
         // TODO per file clustering might make sense here
